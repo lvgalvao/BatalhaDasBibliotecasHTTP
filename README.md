@@ -118,3 +118,7 @@ O uso de sessões otimiza o processo de fazer várias requisições HTTP ao reut
 * Para operações de I/O-bound, como requisições de rede, as abordagens assíncronas (`lib_httpx_session_async` e `lib_aiohttp_session_async`) são significativamente mais rápidas, embora exijam mais memória devido à natureza concorrente.
 * Em geral, escolher a abordagem certa depende do equilíbrio entre a eficiência de tempo de execução e o uso de recursos, como memória, com base nas necessidades específicas da aplicação.
 
+### Literatura
+
+- [Real Python](https://realpython.com/python-concurrency/)
+- [Arjan Codes](https://www.youtube.com/watch?v=OPyoXx0yA0I)
