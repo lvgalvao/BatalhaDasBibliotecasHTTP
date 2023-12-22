@@ -76,8 +76,45 @@ lib_httpx_session_async: Tempo de execução: 0.89 segundos, Uso de memória: 7.
 lib_aiohttp_session_async: Tempo de execução: 0.79 segundos, Uso de memória: 13.45 MiB.
 ```
 
-Os resultados mostram uma variação significativa entre os módulos em termos de tempo de execução e uso de memória. Os módulos assíncronos (`lib_httpx_session_async` e `lib_aiohttp_session_async`) tendem a ter os melhores tempos de execução devido à sua capacidade de realizar múltiplas requisições simultaneamente, mas com um aumento no uso de memória.
+### Análise dos resultados
 
-Por outro lado, os módulos síncronos que utilizam sessões (`lib_request_session` e `lib_httpx_session`) mostram uma melhoria no desempenho em comparação com suas contrapartes sem sessão, evidenciando a eficiência da reutilização de conexões.
+A análise dos tempos de execução de cada uma das suas funções revela informações importantes sobre a eficiência de diferentes abordagens e bibliotecas para fazer requisições HTTP em Python. Vamos discutir cada uma delas:
 
-Esses resultados oferecem insights valiosos sobre as compensações entre diferentes abordagens de requisições HTTP em Python, destacando a importância de escolher a biblioteca e o método apropriados para as necessidades específicas de desempenho e eficiência de cada aplicação.
+1. **`lib_request` (8.19 segundos, 31.31 MiB)**:
+    
+    * Esta é a implementação mais lenta e também a que mais consome memória. Isso ocorre porque `lib_request` utiliza a biblioteca `requests` sem sessão, fazendo com que cada requisição estabeleça uma nova conexão. Isso resulta em maior latência e maior uso de memória devido ao overhead de estabelecer conexões e gerenciar recursos separadamente para cada requisição.
+2. **`lib_request_session` (1.91 segundos, 0.31 MiB)**:
+    
+    * A utilização de sessões com `requests` melhora drasticamente o tempo de execução e reduz significativamente o uso de memória. Isso se deve à reutilização de conexões TCP, que reduz o overhead de rede e melhora a eficiência geral das requisições.
+3. **`lib_httpx` (5.75 segundos, 17.67 MiB)**:
+    
+    * `lib_httpx` utiliza a biblioteca `httpx` de forma síncrona e sem sessão. Embora seja mais rápida que `lib_request`, ainda é menos eficiente do que as implementações com sessão. Isso sugere que, enquanto `httpx` pode ter algumas otimizações internas em comparação com `requests`, a ausência de sessões ainda resulta em tempos de execução mais longos e maior uso de memória.
+4. **`lib_httpx_session` (1.95 segundos, 0.39 MiB)**:
+    
+    * Similar à `lib_request_session`, a versão com sessão de `httpx` mostra uma melhoria significativa em termos de tempo de execução e uso de memória. Isso reforça a importância da reutilização de conexões para melhorar a eficiência das requisições HTTP.
+5. **`lib_httpx_session_async` (0.89 segundos, 7.42 MiB)** e **`lib_aiohttp_session_async` (0.79 segundos, 13.45 MiB)**:
+    
+    * Estas são as implementações mais rápidas, aproveitando a natureza assíncrona de `httpx` e `aiohttp` com sessões. A capacidade de fazer várias requisições simultaneamente de forma não bloqueante explica os tempos de execução significativamente mais curtos. No entanto, isso vem com um custo de uso de memória mais alto devido ao gerenciamento de múltiplas operações concorrentes.
+
+### Detalhe do uso de memória
+
+As versões com sessão (lib_request_session e lib_httpx_session) apresentam um uso de pico de memória significativamente menor do que as outras, podem ser explicados por algumas características fundamentais do gerenciamento de conexões e sessões nas bibliotecas requests e httpx:
+
+**Reutilização de Conexões:** Quando você usa sessões em requests ou httpx, a conexão TCP estabelecida com o servidor é reutilizada para várias requisições. Isso reduz o overhead de abrir e fechar conexões TCP para cada requisição individual. Abrir e fechar conexões repetidamente (como no caso sem sessão) consome mais memória devido ao overhead de estabelecer novas conexões TCP e ao armazenamento temporário de dados associados a cada conexão.
+
+**Eficiência no Gerenciamento de Recursos:** As sessões gerenciam eficientemente os recursos como sockets e buffers internos. Em contraste, realizar requisições sem sessão pode resultar em um uso menos eficiente desses recursos, pois cada requisição trata seus próprios recursos de rede de forma isolada.
+
+**Menos Overhead de Alocação de Memória:** Usar sessões significa que menos objetos são criados e destruídos durante o processo de fazer várias requisições, o que leva a um menor overhead de alocação de memória. Sem sessões, cada requisição precisa criar seus próprios objetos de conexão, headers, cookies, etc., o que aumenta o uso de memória.
+
+**Menor Carga de I/O:** Ao reutilizar conexões, as sessões podem reduzir a carga geral de I/O, pois menos operações de rede são necessárias. Menos I/O geralmente se traduz em menos uso de memória.
+
+Uso de Memória em Requisições Assíncronas: As versões assíncronas (lib_httpx_session_async e lib_aiohttp_session_async) mostram um maior uso de memória porque gerenciam várias requisições em paralelo, o que naturalmente exige mais recursos de memória para manter o estado de múltiplas operações simultâneas.
+
+O uso de sessões otimiza o processo de fazer várias requisições HTTP ao reutilizar conexões e gerenciar recursos de forma mais eficiente. Isso explica por que as versões com sessão têm um pico de uso de memória significativamente menor em comparação com as versões sem sessão ou as assíncronas, que lidam com requisições de maneira isolada ou simultânea, respectivamente.
+
+### Conclusão
+
+* A utilização de sessões é crucial para otimizar tanto o tempo de execução quanto o uso de memória em requisições HTTP, como demonstrado pelas implementações `lib_request_session` e `lib_httpx_session`.
+* Para operações de I/O-bound, como requisições de rede, as abordagens assíncronas (`lib_httpx_session_async` e `lib_aiohttp_session_async`) são significativamente mais rápidas, embora exijam mais memória devido à natureza concorrente.
+* Em geral, escolher a abordagem certa depende do equilíbrio entre a eficiência de tempo de execução e o uso de recursos, como memória, com base nas necessidades específicas da aplicação.
+
