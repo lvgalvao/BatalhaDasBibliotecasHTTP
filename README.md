@@ -17,8 +17,16 @@ O principal objetivo deste projeto é fornecer insights práticos sobre o desemp
 Cada biblioteca foi utilizada para fazer requisições GET a um servidor de teste. Foram medidos o tempo de execução e o uso de memória para as seguintes abordagens:
 
 1. Requisições síncronas sem sessão.
+
+![Caso 1](/pic/caso_1.png)
+
 2. Requisições síncronas com sessão.
+
+![Caso 2](/pic/caso_2.png)
+
 3. Requisições assíncronas com sessão.
+
+![Caso 3](pic/caso_3.png)
 
 ## Módulos
 
