@@ -1,10 +1,10 @@
-import aiohttp
-import asyncio
+from aiohttp import ClientSession
+from asyncio import gather, run
 import time
 
 BASE_URL = "https://jsonplaceholder.typicode.com/posts"
 
-async def fetch_get(session: aiohttp.ClientSession, post_id: int) -> dict:
+async def fetch_get(session: ClientSession, post_id: int) -> dict:
     async with session.get(f"{BASE_URL}/{post_id}") as response:
         return await response.json()
 
@@ -13,9 +13,9 @@ async def main() -> None:
     start = time.perf_counter()
 
     # Criar uma sessão ClientSession
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession() as session:
         tasks = [fetch_get(session, post_id) for post_id in range(1, 51)]
-        responses = await asyncio.gather(*tasks)
+        responses = await gather(*tasks)
 
         for post_id, response in enumerate(responses, 1):
             print(f"Post {post_id}: {response}")
@@ -26,4 +26,4 @@ async def main() -> None:
 
 # Executar a função main do asyncio
 if __name__ == "__main__":
-    asyncio.run(main())
+    run(main())
